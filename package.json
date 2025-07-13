@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "name": "ufcfights-api",
+  "version": "1.0.0",
+  "description": "UFC fights scrapper",
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bermarques/ufc-fights-api.git"
+  },
+  "keywords": [
+    "ufc"
+  ],
+  "author": "Bernardo Marques",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bermarques/ufc-fights-api/issues"
+  },
+  "homepage": "https://github.com/bermarques/ufc-fights-api#readme"
+}
