@@ -1,14 +1,15 @@
 import * as cheerio from "cheerio";
 import { gotScraping } from "got-scraping";
+import { Event } from "../types/event.js";
+import { MAJOR_ORGS, MAX_EVENTS } from "../config/constants.js";
 
 const baseUrl = "https://www.tapology.com";
-const maxEvents = 1;
 
-const scrapeEvents = async () => {
+export const scrapeEvents = async (): Promise<Omit<Event, "fights">[]> => {
   try {
     const response = await gotScraping({
       url: `${baseUrl}/fightcenter?group=ufc&schedule=upcoming`,
-      proxyUrl: process.env.PROXY_URL,
+      // proxyUrl: process.env.PROXY_URL,
     });
 
     if (response.statusCode !== 200) {
@@ -16,8 +17,6 @@ const scrapeEvents = async () => {
     }
 
     const $ = cheerio.load(response.body);
-
-    const majorOrgs = ["UFC", "PFL", "BELLATOR", "ONE", "RIZIN"];
 
     const events = $(".fightcenterEvents > div")
       .toArray()
@@ -32,28 +31,30 @@ const scrapeEvents = async () => {
       })
       .filter(
         (event) =>
-          majorOrgs.some((org) => event.title.toUpperCase().includes(org)) &&
+          MAJOR_ORGS.some((org) => event.title.toUpperCase().includes(org)) &&
           !event.title.toUpperCase().includes("ONE FRIDAY FIGHTS")
       )
-      .slice(0, maxEvents);
+      .slice(0, MAX_EVENTS);
 
     return events;
   } catch (error) {
     console.error("Scraping error:", error);
-    throw new Error("Error during scraping: ", error);
+    throw new Error(`Error during scraping: ${error}`);
   }
 };
 
-const scrapeEventDetails = async (events) => {
+export const scrapeEventDetails = async (
+  events: Omit<Event, "fights">[]
+): Promise<Event[]> => {
   try {
     const eventsWithFights = await Promise.all(
-      events.map(async (event) => {
+      events.map(async (event): Promise<Event> => {
         const eventResponse = await gotScraping({
           url: event.link,
         });
 
         if (eventResponse.statusCode !== 200) {
-          throw new Error("Failed to fetch for: ", event.link);
+          throw new Error(`Failed to fetch for: ${event.link}`);
         }
 
         const $ = cheerio.load(eventResponse.body);
@@ -95,11 +96,12 @@ const scrapeEventDetails = async (events) => {
                     ".opacity-70.h-\\[14px\\].md\\:h-\\[11px\\].w-\\[22px\\].md\\:w-\\[17px\\]"
                   )
                   .attr("src"),
-              picture: fighterAContainer
-                .find(
-                  ".w-\\[77px\\].h-\\[77px\\].md\\:w-\\[104px\\].md\\:h-\\[104px\\].rounded"
-                )
-                .attr("src"),
+              picture:
+                fighterAContainer
+                  .find(
+                    ".w-\\[77px\\].h-\\[77px\\].md\\:w-\\[104px\\].md\\:h-\\[104px\\].rounded"
+                  )
+                  .attr("src") || "",
               link:
                 baseUrl +
                 fighterAContainer.find(".link-primary-red").attr("href"),
@@ -119,11 +121,12 @@ const scrapeEventDetails = async (events) => {
                     ".opacity-70.h-\\[14px\\].md\\:h-\\[11px\\].w-\\[22px\\].md\\:w-\\[17px\\]"
                   )
                   .attr("src"),
-              picture: fighterBContainer
-                .find(
-                  ".w-\\[77px\\].h-\\[77px\\].md\\:w-\\[104px\\].md\\:h-\\[104px\\].rounded"
-                )
-                .attr("src"),
+              picture:
+                fighterBContainer
+                  .find(
+                    ".w-\\[77px\\].h-\\[77px\\].md\\:w-\\[104px\\].md\\:h-\\[104px\\].rounded"
+                  )
+                  .attr("src") || "",
               link:
                 baseUrl +
                 fighterBContainer.find(".link-primary-red").attr("href"),
@@ -132,16 +135,16 @@ const scrapeEventDetails = async (events) => {
             return { main, weight, fighterA, fighterB };
           });
 
-        event.fights = fights;
-        return event;
+        return {
+          ...event,
+          fights,
+        };
       })
     );
 
     return eventsWithFights.filter((event) => event.fights.length > 0);
   } catch (error) {
     console.error("Error during scraping event details:", error);
-    throw new Error("Error during scraping event details:", error);
+    throw new Error(`Error during scraping event details: ${error}`);
   }
 };
-
-export { scrapeEvents, scrapeEventDetails };
