@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { Event } from "../types/event";
-import { Fight, FightPrediction } from "../types/fight";
+import { Fight, GeminiResponse } from "../types/fight";
 import { basePrompt } from "../utils/prompt";
 import { GEMINI_CONFIG, GEMINI_MODEL } from "../config/constants";
 
@@ -17,7 +17,7 @@ export class AIService {
     return prompt;
   }
 
-  static async getFightsPredictions(event: Event): Promise<FightPrediction[]> {
+  static async getFightsPredictions(event: Event): Promise<GeminiResponse> {
     try {
       const prompt = this.buildPrompt(event);
 
@@ -33,8 +33,6 @@ export class AIService {
 
       const prediction = JSON.parse(response.text || "");
 
-      console.log(prediction);
-
       const result = prediction;
 
       return result;
@@ -44,12 +42,14 @@ export class AIService {
     }
   }
 
-  private static getMockPredictions(fights: Fight[]): FightPrediction[] {
-    return fights.map(() => ({
-      winner: Math.random() > 0.5 ? "fighterA" : "fighterB",
-      confidence: Math.round((Math.random() * 40 + 60) * 100) / 100,
-      analysis: "Análise baseada em histórico de lutas e estatísticas",
-      keyFactors: [],
-    }));
+  private static getMockPredictions(fights: Fight[]): GeminiResponse {
+    return {
+      fights: fights.map(() => ({
+        winner: Math.random() > 0.5 ? "fighterA" : "fighterB",
+        confidence: Math.round((Math.random() * 40 + 60) * 100) / 100,
+        analysis: "Análise baseada em histórico de lutas e estatísticas",
+        keyFactors: [],
+      })),
+    };
   }
 }

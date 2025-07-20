@@ -6,7 +6,7 @@ import { ScrapeRequest, ApiResponse } from "../types/api.js";
 
 export class FightController {
   static async scrapeAndUpdateFights(
-    req: Request<{}, {}, ScrapeRequest>,
+    req: Request<unknown, unknown, ScrapeRequest>,
     res: Response<ApiResponse>
   ) {
     try {

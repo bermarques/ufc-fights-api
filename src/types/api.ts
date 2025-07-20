@@ -1,3 +1,4 @@
+import { Event } from "./event";
 import { Fight, FightPrediction } from "./fight";
 
 export interface ApiResponse<T = any> {

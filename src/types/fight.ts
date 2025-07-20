@@ -20,3 +20,7 @@ export interface FightPrediction {
   analysis: string;
   keyFactors: string[];
 }
+
+export interface GeminiResponse {
+  fights: FightPrediction[];
+}
