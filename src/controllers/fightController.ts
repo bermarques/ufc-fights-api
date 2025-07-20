@@ -40,7 +40,7 @@ export class FightController {
       const data = (await DataService.getEvents()).data;
       return res.status(200).json({
         error: false,
-        data,
+        data: data?.[0],
       });
     } catch (error) {
       console.error("Error retrieving fights:", error);
