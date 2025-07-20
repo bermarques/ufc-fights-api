@@ -1,14 +1,11 @@
-import { prediction } from "../../data/prediction";
+import { GoogleGenAI } from "@google/genai";
 import { Event } from "../types/event";
 import { Fight, FightPrediction } from "../types/fight";
 import { basePrompt } from "../utils/prompt";
+import { GEMINI_CONFIG, GEMINI_MODEL } from "../config/constants";
 
 export class AIService {
-  private static readonly AI_API_URL =
-    process.env.AI_API_URL || "https://api.example.com/predict";
-  private static readonly AI_API_KEY = process.env.AI_API_KEY;
-
-  static async buildPrompt(event: Event) {
+  static buildPrompt(event: Event) {
     const prompt = `
     ${basePrompt} \n
     EVENT: ${event.title},
@@ -16,27 +13,28 @@ export class AIService {
     FIGHTS: 
     ${event.fights.map((fight) => `${fight.fighterA.name} vs ${fight.fighterB.name}`).join("\n")}
     `;
+    console.log(prompt);
     return prompt;
   }
 
   static async getFightsPredictions(event: Event): Promise<FightPrediction[]> {
     try {
-      this.buildPrompt(event);
+      const prompt = this.buildPrompt(event);
 
-      //   const response = await fetch(this.AI_API_URL, {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //       Authorization: `Bearer ${this.AI_API_KEY}`,
-      //     },
-      //     body: JSON.stringify({ fights: fightData }),
-      //   });
+      const ai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+      });
 
-      //   if (!response.ok) {
-      //     throw new Error(`AI API responded with status: ${response.status}`);
-      //   }
+      const response = await ai.models.generateContent({
+        model: GEMINI_MODEL,
+        config: GEMINI_CONFIG,
+        contents: prompt,
+      });
 
-      //   const result = await response.json();
+      const prediction = JSON.parse(response.text || "");
+
+      console.log(prediction);
+
       const result = prediction;
 
       return result;

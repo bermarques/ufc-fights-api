@@ -18,14 +18,13 @@ export class FightController {
           message: "Invalid trigger key",
         });
       }
-      await ScrapingService.scrapeLatestEvents();
+      const events = await ScrapingService.scrapeLatestEvents();
 
-      const data = (await DataService.getEvents()).data;
+      await DataService.saveEvents(events);
 
       return res.status(200).json({
         error: false,
         message: "Scraping succesfully completed",
-        data,
       });
     } catch (error) {
       console.error("Error in scrapeAndUpdateFights:", error);
@@ -55,17 +54,16 @@ export class FightController {
   static async updatePredictions(req: Request, res: Response<ApiResponse>) {
     try {
       const existingData = await DataService.getEvents();
+      req.setTimeout(300000);
 
       for (const event of existingData.data) {
         if (event.fights.length > 0) {
           const predictions = await AIService.getFightsPredictions(event);
           event.fights.forEach((fight, index) => {
-            console.log(predictions.fights[index]);
             fight.prediction = predictions.fights[index];
           });
         }
       }
-      console.log(existingData.data);
 
       await DataService.saveEvents(existingData.data);
 
