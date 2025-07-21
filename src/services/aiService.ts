@@ -13,7 +13,6 @@ export class AIService {
     FIGHTS: 
     ${event.fights.map((fight) => `${fight.fighterA.name} vs ${fight.fighterB.name}`).join("\n")}
     `;
-    console.log(prompt);
     return prompt;
   }
 
