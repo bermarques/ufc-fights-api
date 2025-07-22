@@ -23,10 +23,14 @@ export const scrapeEvents = async (): Promise<Omit<Event, "fights">[]> => {
       .map((el) => {
         const eventLink = $(el).find(".promotion a");
         const date = $(el).find(".promotion span").eq(3).text().trim();
+        const location = $(el).find(".geography span").eq(2).text().trim();
+        const locationFlag = $(el).find(".geography img").attr("src");
         return {
           title: eventLink.first().text().trim(),
           date,
           link: baseUrl + eventLink.first().attr("href"),
+          location,
+          locationFlag: baseUrl + locationFlag,
         };
       })
       .filter(
@@ -78,6 +82,10 @@ export const scrapeEventDetails = async (
               .trim()
               .substring(0, 3);
 
+            const belt = !!$(el).find(
+              "div.flex.items-center.justify-center.gap-1 svg.w-\\[22px\\].md\\:w-\\[30px\\],h-\\[22px\\],md\\:h-\\[30px\\].fill-tap_darkgold"
+            ).length;
+
             const fighterContainers = $(el).find(
               ".div.flex.flex-row.gap-0\\.5.md\\:gap-0.w-full"
             );
@@ -87,6 +95,12 @@ export const scrapeEventDetails = async (
               name: fighterAContainer.find(".link-primary-red").text().trim(),
               record: fighterAContainer
                 .find(".text-\\[15px\\].md\\:text-xs.order-2")
+                .text()
+                .trim(),
+              rank: fighterAContainer
+                .find(
+                  ".div.flex.md\\:hidden.items-center.justify-center.bg-tap_darkred.text-tap_f2.h-\\[20px\\].min-w-\\[38px\\].rounded.order-2.gap-px"
+                )
                 .text()
                 .trim(),
               country:
@@ -114,6 +128,12 @@ export const scrapeEventDetails = async (
                 .find(".text-\\[15px\\].md\\:text-xs.order-1")
                 .text()
                 .trim(),
+              rank: fighterBContainer
+                .find(
+                  ".div.hidden.md\\:flex.items-center.justify-center.bg-tap_darkred.text-tap_f2.h-\\[18px\\].md\\:min-w-\\[30px\\].rounded.order-1.gap-px"
+                )
+                .text()
+                .trim(),
               country:
                 baseUrl +
                 fighterBContainer
@@ -132,7 +152,7 @@ export const scrapeEventDetails = async (
                 fighterBContainer.find(".link-primary-red").attr("href"),
             };
 
-            return { main, weight, fighterA, fighterB };
+            return { main, weight, belt, fighterA, fighterB };
           });
 
         return {
